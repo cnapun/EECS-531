@@ -1,6 +1,5 @@
 close all;clear;clc;
-
-% %% Load things
+%% Load things
 Io = imread('characters.png');
 I = mat2gray(rgb2gray(Io));
 load('template-h.mat');
@@ -20,7 +19,9 @@ for i=1:rh
         D(i,j) = norm(pat(:)-T(:)).^2;
     end
 end
+
 D = D/max(D(:));
+
 [ay, ax] = find(D<0.1); % indices
 
 %% Plot
