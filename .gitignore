@@ -9,3 +9,4 @@ A2/notebook.tex
 A4/data/*
 !A4/data/sphere/*.png
 !A4/data/image/seq1/*.png
+.idea
