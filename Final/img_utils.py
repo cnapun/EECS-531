@@ -11,7 +11,7 @@ def get_lxly(n):
     return Lx, Ly
 
 
-def cgls(A, b, eta=0.0, n_tocare=None, niter=100):
+def cgls(A, b, eta=0.0, n_tocare=None, niter=20):
     M, N = A.shape
     if not n_tocare:
         n_tocare = M
@@ -90,6 +90,7 @@ def split_bregman(A, b, alpha, lda, niter=100):
     shrink = lambda a, kappa: np.sign(a) * np.maximum(np.abs(a) - kappa, 0);
     it = 0
     while it < niter:
+#         print(it)
         it += 1
         u = u_update(A, b, gx, gy, bx, by, alpha, lda, Dx, Dy)
         gx = Dx @ u
@@ -102,7 +103,7 @@ def split_bregman(A, b, alpha, lda, niter=100):
     return u
 
 
-def gamma_reconstruct(A, b, noiselev, theta0, alpha, tol=1e-4, niter=100, verbose=True):
+def gamma_reconstruct(A, b, noiselev, theta0, alpha, tol=1e-4, niter=100, verbose=True, cgls_eta=0.0, cgls_niter=25):
     m, n = A.shape
     Lx, Ly = get_lxly(n)
     thetas = np.ones(n)
@@ -114,10 +115,18 @@ def gamma_reconstruct(A, b, noiselev, theta0, alpha, tol=1e-4, niter=100, verbos
         dhi = sparse.diags(thetas ** (-0.5))
         lhs = sparse.vstack(((1 / noiselev) * A, dhi @ Lx, dhi @ Ly))
         rhs = np.concatenate(((1 / noiselev) * b, np.zeros(Lx.shape[0] + Ly.shape[0])))
-        xr = cgls(lhs, rhs, np.sqrt(m), m)
+        xr = cgls(lhs, rhs, cgls_eta, m, niter=cgls_niter)
         eta = 0.5 * (alpha - 2)
         term1 = ((Lx @ xr) ** 2 + (Ly @ xr) ** 2) / (2 * theta0)
         thetas = theta0 * (eta + np.sqrt(term1 + eta ** 2));
         if verbose and (it % 50 == 0):
             print('Iteration %d complete' % it)
     return xr
+
+def tikhonov(A, b, reg, niter=200):
+    m, n = A.shape
+    Lx, Ly = get_lxly(n)
+    fmat = sparse.vstack((A / reg, Lx, Ly))
+    y = np.concatenate((b / reg, np.zeros(Lx.shape[0]), np.zeros(Ly.shape[0])))
+    t = cgls(fmat, y, niter=niter)
+    return t
