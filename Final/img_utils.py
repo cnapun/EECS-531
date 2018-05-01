@@ -109,7 +109,7 @@ def gamma_reconstruct(A, b, noiselev, theta0, alpha, tol=1e-4, niter=100, verbos
     thetas = np.ones(n)
     varp = thetas + 100
     it = 0
-    while (np.linalg.norm(varp - thetas) / np.linalg.norm(varp) > tol) and (it < niter):
+    while (it<5 or np.linalg.norm(varp - thetas) / np.linalg.norm(varp) > tol) and (it < niter):
         it = it + 1
         varp = thetas
         dhi = sparse.diags(thetas ** (-0.5))
